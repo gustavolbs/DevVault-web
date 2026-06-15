@@ -1,0 +1,18 @@
+import { KeyRound, Laptop } from "lucide-react";
+import { DeactivateDeviceButton } from "@/components/deactivate-device-button";
+import { getSubscriptionProfile, requireUser } from "@/lib/auth";
+import { ensureProLicense } from "@/lib/license/service";
+
+export default async function LicensesPage() {
+  const user = await requireUser();
+  const profile = await getSubscriptionProfile(user);
+  const license = profile.plan === "pro" ? await ensureProLicense(user.id) : null;
+  const activatedAt = license?.activatedAt
+    ? new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short" }).format(new Date(license.activatedAt))
+    : null;
+
+  return <><p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Your desktop access</p><h1 className="mt-2 text-3xl font-semibold tracking-tight">License and device</h1><p className="mt-2 text-sm text-muted-foreground">Find your Pro key, see where it is active and free the license before moving to another Mac.</p>
+    <div className="mt-8 grid gap-4 sm:grid-cols-2"><section className="rounded-xl border border-border bg-card p-6 shadow-sm"><p className="text-xs text-muted-foreground">What your plan unlocks</p><div className="mt-2 flex items-center gap-3"><h2 className="text-2xl font-semibold capitalize">{profile.plan}</h2><span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium capitalize text-primary">{profile.licenseStatus}</span></div><p className="mt-4 text-sm leading-6 text-muted-foreground">{profile.plan === "free" ? "Use one project locally without a key, activation or account connection inside the app." : "Use unlimited projects and every Pro workflow on one active desktop device."}</p></section><section className="rounded-xl border border-border bg-card p-6 shadow-sm"><p className="text-xs text-muted-foreground">Your private license key</p>{license ? <><p className="mt-3 break-all font-mono text-sm font-semibold tracking-wide">{license.licenseKey}</p><p className="mt-4 text-xs text-muted-foreground">Treat this key like a credential. You will use it to activate Pro in the desktop app.</p></> : <><p className="mt-3 text-lg font-semibold">No key needed</p><p className="mt-4 text-xs text-muted-foreground">The Free plan works immediately in local mode. A key is created after you purchase Pro.</p></>}</section></div>
+    <section className="mt-5 rounded-xl border border-border bg-card shadow-sm"><div className="flex items-center justify-between border-b border-border p-6"><div><h2 className="font-semibold">Where Pro is active</h2><p className="mt-1 text-xs text-muted-foreground">{license?.activatedDeviceId ? "Your 1 available activation is in use" : "Your activation is ready for a Mac"}</p></div><span className={`size-2 rounded-full ${license?.activatedDeviceId ? "bg-emerald-500" : "bg-muted-foreground/40"}`} /></div>{license?.activatedDeviceId ? <div className="flex flex-col gap-5 p-6 sm:flex-row sm:items-center"><span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-accent text-primary"><Laptop className="size-5" /></span><div className="min-w-0 flex-1"><p className="break-all text-sm font-medium">{license.activatedDeviceId}</p><p className="mt-1 text-xs text-muted-foreground">Pro activated {activatedAt}</p></div><DeactivateDeviceButton deviceId={license.activatedDeviceId} /></div> : <div className="p-8 text-center"><span className="mx-auto flex size-11 items-center justify-center rounded-lg bg-muted text-muted-foreground"><KeyRound className="size-5" /></span><p className="mt-4 text-sm font-medium">Ready for your first activation</p><p className="mt-1 text-xs text-muted-foreground">Open DevVault on your Mac, sign in and enter the Pro key shown above.</p></div>}</section>
+  </>;
+}
