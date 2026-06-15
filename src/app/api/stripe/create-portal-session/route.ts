@@ -3,6 +3,7 @@ import { getStripe } from "@/lib/stripe";
 import { createClient } from "@/lib/supabase/server";
 import { getTrustedOrigin } from "@/lib/request-origin";
 import { logServerError } from "@/lib/server-log";
+import { apiSecurityErrorResponse, enforceRateLimit } from "@/lib/api-security";
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,6 +17,7 @@ export async function POST(request: NextRequest) {
     if (userError || !userData.user) {
       return NextResponse.json({ error: "Authentication required." }, { status: 401 });
     }
+    await enforceRateLimit("stripe-portal", userData.user.id, 10, 300);
 
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
@@ -42,6 +44,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ url: session.url });
   } catch (error) {
+    const securityResponse = apiSecurityErrorResponse(error);
+    if (securityResponse) return securityResponse;
     logServerError("Failed to create Stripe Customer Portal Session", error);
     const message = error instanceof Error && error.message.includes("not configured")
       ? "Stripe billing is not configured yet."

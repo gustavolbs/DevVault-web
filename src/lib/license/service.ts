@@ -18,7 +18,7 @@ export async function getLicense(userId: string): Promise<LicenseRecord | null> 
 export async function ensureProLicense(userId: string): Promise<LicenseRecord> {
   const current = await getLicense(userId);
   if (current) return current;
-  const licenseKey = `DVLT-${randomBytes(10).toString("hex").toUpperCase()}`;
+  const licenseKey = `ENVD-${randomBytes(10).toString("hex").toUpperCase()}`;
   const { data, error } = await createAdminClient().from("licenses").insert({ userId, licenseKey, status: "active", plan: "pro" }).select("*").single();
   if (error) throw error;
   return data as LicenseRecord;
@@ -30,12 +30,12 @@ export async function getLicensePayload(userId: string, deviceId?: string | null
   return createProPayload(await ensureProLicense(userId), deviceId);
 }
 
-export async function activateLicense(userId: string, licenseKey: string, deviceId: string): Promise<LicensePayload> {
+export async function activateLicense(userId: string, licenseKey: string | null, deviceId: string): Promise<LicensePayload> {
   const plan = await getUserPlan(userId);
   if (plan === "free") return createFreePayload();
 
   const license = await ensureProLicense(userId);
-  if (license.licenseKey !== licenseKey) throw new LicenseError("INVALID_LICENSE_KEY", "The license key is invalid.", 403);
+  if (licenseKey && license.licenseKey !== licenseKey) throw new LicenseError("INVALID_LICENSE_KEY", "The license key is invalid.", 403);
   if (license.status !== "active") return createProPayload(license, deviceId);
   if (license.activatedDeviceId && license.activatedDeviceId !== deviceId) {
     throw new LicenseError("DEVICE_LIMIT", "This Pro license is already active on another device.", 409, createProPayload(license, deviceId));

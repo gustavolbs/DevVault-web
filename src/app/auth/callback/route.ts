@@ -2,14 +2,13 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { getTrustedOrigin } from "@/lib/request-origin";
+import { safeInternalPath } from "@/lib/auth-redirect";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const origin = getTrustedOrigin(request);
   const code = searchParams.get("code");
-  let next = searchParams.get("next") ?? "/account";
-
-  if (!next.startsWith("/")) next = "/account";
+  const next = safeInternalPath(searchParams.get("next"));
   if (!isSupabaseConfigured()) {
     return NextResponse.redirect(`${origin}/login?error=configuration`);
   }

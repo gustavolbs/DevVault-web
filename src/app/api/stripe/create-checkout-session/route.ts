@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { assertStripeCheckoutConfig, getStripe, getStripePriceId } from "@/lib/stripe";
 import { getTrustedOrigin } from "@/lib/request-origin";
 import { logServerError } from "@/lib/server-log";
+import { apiSecurityErrorResponse, enforceRateLimit } from "@/lib/api-security";
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,6 +21,7 @@ export async function POST(request: NextRequest) {
     }
 
     const user = userData.user;
+    await enforceRateLimit("stripe-checkout", user.id, 5, 300);
     const { data: profile } = await supabase
       .from("profiles")
       .select('plan, licenseStatus, stripeCustomerId')
@@ -34,7 +36,7 @@ export async function POST(request: NextRequest) {
     const priceId = getStripePriceId();
     const price = await stripe.prices.retrieve(priceId);
     if (!price.active) {
-      return NextResponse.json({ error: "The DevVault Pro price is not active." }, { status: 503 });
+      return NextResponse.json({ error: "The EnvDock Pro price is not active." }, { status: 503 });
     }
 
     const mode: Stripe.Checkout.SessionCreateParams.Mode = price.type === "recurring" ? "subscription" : "payment";
@@ -66,6 +68,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ url: session.url });
   } catch (error) {
+    const securityResponse = apiSecurityErrorResponse(error);
+    if (securityResponse) return securityResponse;
     logServerError("Failed to create Stripe Checkout Session", error);
     const message = error instanceof Error && error.message.includes("not configured")
       ? "Stripe Checkout is not configured yet."

@@ -23,7 +23,7 @@ export function DownloadButton({ href, label, fileName }: { href?: string; label
     link.rel = "noopener noreferrer";
     link.target = "_blank";
     link.click();
-    window.setTimeout(() => { setState("started"); toast({ tone: "success", title: "DevVault is on its way", description: `${fileName} should appear in your Downloads folder.` }); }, 200);
+    window.setTimeout(() => { setState("started"); toast({ tone: "success", title: "EnvDock is on its way", description: `${fileName} should appear in your Downloads folder.` }); }, 200);
     resetTimer.current = setTimeout(() => setState("idle"), 8000);
   }
 

@@ -28,7 +28,7 @@ begin
     insert into public.licenses ("userId", "licenseKey", status, plan)
     values (
       new.id,
-      'DVLT-' || upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 20)),
+      'ENVD-' || upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 20)),
       'active',
       'pro'
     )
@@ -45,7 +45,7 @@ create trigger on_profile_upgraded_to_pro
 insert into public.licenses ("userId", "licenseKey", status, plan)
 select
   id,
-  'DVLT-' || upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 20)),
+  'ENVD-' || upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 20)),
   'active',
   'pro'
 from public.profiles

@@ -7,12 +7,12 @@ const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: { default: "DevVault — Your project context, always yours", template: "%s | DevVault" },
+  title: { default: "EnvDock — Your project context, always yours", template: "%s | EnvDock" },
   description: "Keep project environments, encrypted variables and commands ready on your Mac without sending your vault to the cloud.",
-  metadataBase: new URL("https://devvault.app"),
+  metadataBase: new URL("https://envdock.app"),
 };
 
-const themeScript = `try{const t=localStorage.getItem('devvault-theme');const d=t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d)}catch(e){}`;
+const themeScript = `try{const t=localStorage.getItem('envdock-theme');const d=t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d)}catch(e){}`;
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (

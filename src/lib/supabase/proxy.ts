@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseConfig, isSupabaseConfigured } from "@/lib/supabase/config";
+import { safeInternalPath } from "@/lib/auth-redirect";
 
 export async function updateSession(request: NextRequest) {
   if (!isSupabaseConfigured()) return NextResponse.next({ request });
@@ -33,10 +34,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   if (isAuthRoute && isAuthenticated) {
-    const accountUrl = request.nextUrl.clone();
-    accountUrl.pathname = "/account";
-    accountUrl.search = "";
-    return NextResponse.redirect(accountUrl);
+    return NextResponse.redirect(new URL(safeInternalPath(request.nextUrl.searchParams.get("next")), request.nextUrl.origin));
   }
 
   return response;
